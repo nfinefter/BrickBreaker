@@ -13,11 +13,26 @@ namespace BrickBreaker
         {
 
         }
-        public void Update(int scoreNum)
+
+        public void BounceBall(int width, int height)
         {
-            if (Position.X < 0)
+            Position -= Speed;
+
+            if (Position.Y + Size.Y >= height)
             {
-                scoreNum--;
+                //reset ball
+            }
+            if (Position.X + Size.X >= width)
+            {
+                Speed *= -1;
+            }
+            if (Position.X <= 0)
+            {
+                Speed *= -1;
+            }
+            if (Position.Y <= 0)
+            {
+                Speed *= -1;
             }
         }
     }

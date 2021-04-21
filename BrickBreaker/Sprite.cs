@@ -35,6 +35,8 @@ namespace BrickBreaker
 
         public void Draw(SpriteBatch spriteBatch)
         {
+            //IsDebug
+
             spriteBatch.Draw(Texture, HitBox, Tint);
         }
     }
