@@ -36,7 +36,7 @@ namespace BrickBreaker
 
             ball = new Ball(new Vector2(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height - 70), pixel, new Point(20, 20), Color.Black, new Vector2 (5, 5));
 
-            bricks = new Brick[50];
+            bricks = new Brick[54];
 
             int gap = 5;
             int x = gap;
