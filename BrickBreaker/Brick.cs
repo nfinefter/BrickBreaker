@@ -10,23 +10,19 @@ namespace BrickBreaker
     class Brick : Sprite
     {
         public bool PowerUp;
+        public bool IsVisible = true;
 
-        public Brick(Vector2 position, Texture2D texture, Point size, Color tint, Vector2 speed, bool powerUp)
-            : base (position, texture, size, tint, speed)
+        public Brick(Vector2 position, Texture2D texture, Vector2 scale, Color tint, Vector2 speed, Random random)
+            : base (position, texture, scale, tint, speed)
         {
-            PowerUp = powerUp;
-        }
-        public void IsPower()
-        {
-            Random rand = new Random();
 
-            if (rand.Next(1, 30) == 15)
+            if (random.Next(1, 30) == 15)
             {
                 PowerUp = true;
             }
             else
             {
-                PowerUp = false
+                PowerUp = false;
             }
 
         }

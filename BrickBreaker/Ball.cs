@@ -8,8 +8,8 @@ namespace BrickBreaker
 {
     class Ball : Sprite
     {
-        public Ball(Vector2 position, Texture2D texture, Point size, Color tint, Vector2 speed)
-           : base(position, texture, size, tint, speed)
+        public Ball(Vector2 position, Texture2D texture, Vector2 scale, Color tint, Vector2 speed)
+           : base(position, texture, scale, tint, speed)
         {
 
         }
@@ -18,21 +18,21 @@ namespace BrickBreaker
         {
             Position -= Speed;
 
-            if (Position.Y + Size.Y >= height)
+            if (Position.Y + Scale.Y >= height)
             {
                 //reset ball
             }
-            if (Position.X + Size.X >= width)
+            if (Position.X + Scale.X >= width)
             {
-                Speed *= -1;
+                Speed = new Vector2(Speed.X * -1, Speed.Y);
             }
             if (Position.X <= 0)
             {
-                Speed *= -1;
+                Speed = new Vector2(Speed.X * -1, Speed.Y);
             }
             if (Position.Y <= 0)
             {
-                Speed *= -1;
+                Speed = new Vector2(Speed.X, Speed.Y * -1);
             }
         }
     }
