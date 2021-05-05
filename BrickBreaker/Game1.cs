@@ -15,7 +15,6 @@ namespace BrickBreaker
         Paddle paddle;
         public int lives = 3;
         Random rand = new Random();
-
         SpriteFont font;
 
         public Game1()
@@ -151,7 +150,7 @@ namespace BrickBreaker
                 }
             }
 
-            spriteBatch.DrawString(font, "Hi my name is bob", new Vector2(100, 100), Color.Black);
+            spriteBatch.DrawString(font, $"Lives: {lives}", new Vector2(0, 0), Color.Black);
 
             spriteBatch.End();
 
