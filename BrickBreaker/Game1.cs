@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
+using System.Collections.Generic;
 
 namespace BrickBreaker
 {
@@ -10,12 +11,14 @@ namespace BrickBreaker
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
 
-        Ball ball;
+        List<Ball> balls = new List<Ball>();
+
         Brick[] bricks;
         Paddle paddle;
-        public int lives = 3;
         Random rand = new Random();
+        Vector2 originalPos;
         SpriteFont font;
+        KeyboardState ks;
 
         public Game1()
         {
@@ -40,8 +43,11 @@ namespace BrickBreaker
             Texture2D pixel = new Texture2D(GraphicsDevice, 1, 1);
             pixel.SetData(new Color[] { Color.White });
 
+            originalPos = new Vector2(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height - 70);
 
-            ball = new Ball(new Vector2(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height - 70), pixel, new Vector2(20, 20), Color.Black, new Vector2(5, 5));
+            Ball og = new Ball(originalPos, pixel, new Vector2(20, 20), Color.Black, new Vector2(5, 5), originalPos, true);
+            balls.Add(og);
+
             paddle = new Paddle(new Vector2(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height - 15), pixel, new Vector2(200, 15), Color.Black, new Vector2(10, 5));
 
             bricks = new Brick[60];
@@ -83,7 +89,8 @@ namespace BrickBreaker
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            KeyboardState ks = Keyboard.GetState();
+            ks = Keyboard.GetState();
+           
 
             float x = paddle.Position.X;
             float y = paddle.Position.Y;
@@ -96,37 +103,80 @@ namespace BrickBreaker
             {
                 x -= 5;
             }
-
             x = Math.Max(x, 0);
             x = Math.Min(x, GraphicsDevice.Viewport.Width - paddle.Width);
 
             paddle.Position = new Vector2(x, y);
-            //At the very end set paddle.Position = new Vector2(x, y)
 
-            // TODO: Add your update logic here
-
-            //Loop through your bricks collection
-            //Check if bricks[i][j].HitBox.Intersects(ball.Hitbox)
-            for (int i = 0; i < bricks.Length; i++)
+            for (int ballIndex = 0; ballIndex < balls.Count; ballIndex++)
             {
-                if (bricks[i].HitBox.Intersects(ball.HitBox) && bricks[i].IsVisible == true)
+                Ball ball = balls[ballIndex];
+
+                if (ball.isDead == true)
                 {
+                    if (ball.OriginalBall == false) 
+                    {
+                        balls.RemoveAt(ballIndex);
+                        ballIndex--;
+                        continue;
+                    }
+
+                    if (ks.IsKeyDown(Keys.Space))
+                    {
+                        ball.Speed = new Vector2(5, 5); 
+                        ball.Position = ball.OriginalPos;
+                        ball.isDead = false;
+                    }
+                }
+                //At the very end set paddle.Position = new Vector2(x, y)
+
+                // TODO: Add your update logic here
+
+                //Loop through your bricks collection
+                //Check if bricks[i][j].HitBox.Intersects(ball.Hitbox)
+                for (int i = 0; i < bricks.Length; i++)
+                {
+                    if (bricks[i].HitBox.Intersects(ball.HitBox) && bricks[i].IsVisible == true)
+                    {
+                        float newx = ball.Position.X;
+                        float newy = ball.Position.Y;
+
+                        newx = Math.Max(newx, bricks[i].Position.X - ball.Width);
+                        newx = Math.Min(newx, bricks[i].Position.X + bricks[i].Width);
+
+
+                        newy = Math.Max(newy, bricks[i].Position.Y - ball.Height);
+                        newy = Math.Min(newy, bricks[i].Position.Y + bricks[i].Height);
+
+                        ball.Position = new Vector2(newx, newy);
+
+                        ball.Speed = new Vector2(ball.Speed.X, ball.Speed.Y * -1);
+                        if (bricks[i].PowerUp == true)
+                        {
+                            ball.Powers(rand, balls);
+                        }
+                        bricks[i].IsVisible = false;
+                    }
+                    if (bricks[i].PowerUp == true)
+                    {
+                        bricks[i].Tint = Color.Red;
+                    }
+                }
+                if (paddle.HitBox.Intersects(ball.HitBox))
+                {
+                    //Then make sure ball gets readjusted to correct location
+
                     ball.Speed = new Vector2(ball.Speed.X, ball.Speed.Y * -1);
-                    bricks[i].IsVisible = false;
+
                 }
-                if (bricks[i].PowerUp == true)
+
+                ball.BounceBall(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, ks);
+
+                if (ball.GameEnd == true && ball.OriginalBall)
                 {
-                    bricks[i].Tint = Color.Red;
+
                 }
             }
-            if (paddle.HitBox.Intersects(ball.HitBox))
-            {
-                ball.Speed = new Vector2(ball.Speed.X, ball.Speed.Y * -1);
-            }
-
-            ball.BounceBall(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
-
-
             base.Update(gameTime);
         }
 
@@ -137,8 +187,11 @@ namespace BrickBreaker
             // TODO: Add your drawing code here
             spriteBatch.Begin();
 
+            for (int i = 0; i < balls.Count; i++)
+            {
+                balls[i].Draw(spriteBatch);
+            }
 
-            ball.Draw(spriteBatch);
             paddle.Draw(spriteBatch);
 
             for (int i = 0; i < bricks.Length; i++)
@@ -150,7 +203,7 @@ namespace BrickBreaker
                 }
             }
 
-            spriteBatch.DrawString(font, $"Lives: {lives}", new Vector2(0, 0), Color.Black);
+            spriteBatch.DrawString(font, $"Lives: {balls.Count + balls[0].Lives - 1}", new Vector2(0, 0), Color.Black);
 
             spriteBatch.End();
 

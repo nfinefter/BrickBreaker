@@ -49,7 +49,7 @@ namespace BrickBreaker
 
         }
 
-        public void Draw(SpriteBatch spriteBatch)
+        public virtual void Draw(SpriteBatch spriteBatch)
         {
             //IsDebug
 

@@ -16,7 +16,7 @@ namespace BrickBreaker
             : base (position, texture, scale, tint, speed)
         {
 
-            if (random.Next(1, 30) == 15)
+            if (random.Next(1, 10) == 5)
             {
                 PowerUp = true;
             }
@@ -26,5 +26,6 @@ namespace BrickBreaker
             }
 
         }
+
     }
 }
