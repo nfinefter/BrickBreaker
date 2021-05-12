@@ -19,6 +19,16 @@ namespace BrickBreaker
         Vector2 originalPos;
         SpriteFont font;
         KeyboardState ks;
+        Ball og;
+        bool isExitSelected = false;
+        bool isPlayAgainSelected = false;
+        int gap;
+        int x;
+        int y;
+        int width;
+        int height;
+        int level;
+        Texture2D pixel;
 
         public Game1()
         {
@@ -26,6 +36,7 @@ namespace BrickBreaker
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
         }
+    
 
         protected override void Initialize()
         {
@@ -40,29 +51,28 @@ namespace BrickBreaker
 
             font = Content.Load<SpriteFont>("Font");
 
-            Texture2D pixel = new Texture2D(GraphicsDevice, 1, 1);
+            pixel = new Texture2D(GraphicsDevice, 1, 1);
             pixel.SetData(new Color[] { Color.White });
 
             originalPos = new Vector2(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height - 70);
 
-            Ball og = new Ball(originalPos, pixel, new Vector2(20, 20), Color.Black, new Vector2(5, 5), originalPos, true);
+            og = new Ball(originalPos, pixel, new Vector2(20, 20), Color.Black, new Vector2(5, 5), originalPos, true);
             balls.Add(og);
 
             paddle = new Paddle(new Vector2(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height - 15), pixel, new Vector2(200, 15), Color.Black, new Vector2(10, 5));
 
             bricks = new Brick[60];
 
-            int gap = 5;
-            int x = gap + 10;
-            int y = gap + 30;
-            int width = GraphicsDevice.Viewport.Width / 10;
-            int height = 25;
+            gap = 5;
+            x = gap + 10;
+            y = gap + 30;
+            width = GraphicsDevice.Viewport.Width / 10;
+            height = 25;
 
-            int level = 0;
+            level = 0;
 
             for (int i = 0; i < bricks.Length; i++)
             {
-
                 bricks[i] = new Brick(new Vector2(x, y), pixel, new Vector2(width, height), Color.White, new Vector2(0, 0), rand);
                 x = x + width + gap;
 
@@ -83,6 +93,56 @@ namespace BrickBreaker
 
             // TODO: use this.Content to load your game content here
         }
+
+        public void Reset()
+        {
+            for (int i = 0; i < bricks.Length; i++)
+            {
+                bricks[i].IsVisible = true;
+            }
+            for (int i = 0; i < bricks.Length; i++)
+            {
+                bricks[i] = new Brick(new Vector2(x, y), pixel, new Vector2(width, height), Color.White, new Vector2(0, 0), rand);
+                x = x + width + gap;
+
+                if (x + width >= GraphicsDevice.Viewport.Width)
+                {
+                    y = y + height + gap;
+                    level++;
+                    if (level % 2 == 0)
+                    {
+                        x = gap + 10;
+                    }
+                    else
+                    {
+                        x = gap + 40;
+                    }
+                }
+            }
+
+
+        }
+        public void EndingGameOptions()
+        {
+            if (balls[0].Lives == 0)
+            {
+                //You Lose
+            }
+            if (bricks.Length == 0)
+            {
+                //You Win
+            }
+            if (isPlayAgainSelected == true)
+            {
+                Reset();
+            }
+            if (isExitSelected == true)
+            {
+                Exit();
+            }
+
+        }
+      
 
         protected override void Update(GameTime gameTime)
         {
