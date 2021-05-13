@@ -30,7 +30,7 @@ namespace BrickBreaker
                 return;
             }
 
-            Position -= Speed;
+            Position += Speed;
 
             if (Position.Y + Scale.Y >= height)
             {
@@ -54,10 +54,13 @@ namespace BrickBreaker
             if (Position.X + Scale.X >= width)
             {
                 Speed = new Vector2(Speed.X * -1, Speed.Y);
+                Position = new Vector2(width - this.Width, Position.Y);
             }
             if (Position.X <= 0)
             {
                 Speed = new Vector2(Speed.X * -1, Speed.Y);
+
+                Position = new Vector2(0, Position.Y);
             }
             if (Position.Y <= 0)
             {
@@ -68,7 +71,7 @@ namespace BrickBreaker
         {
             for (int i = 0; i < 3; i++)
             {
-                Ball ball = new Ball(OriginalPos, Texture, Scale, Tint, new Vector2(rand.Next(1, 11), rand.Next(1, 11)), OriginalPos, false);
+                Ball ball = new Ball(OriginalPos, Texture, Scale, Color.Black, new Vector2(rand.Next(1, 11), rand.Next(1, 11)), OriginalPos, false);
                 balls.Add(ball);
             }
 

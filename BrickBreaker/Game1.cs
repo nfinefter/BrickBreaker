@@ -14,6 +14,8 @@ namespace BrickBreaker
         List<Ball> balls = new List<Ball>();
 
         Brick[] bricks;
+        Button yesButton;
+        Button noButton;
         Paddle paddle;
         Random rand = new Random();
         Vector2 originalPos;
@@ -29,6 +31,7 @@ namespace BrickBreaker
         int height;
         int level;
         Texture2D pixel;
+        bool isPlaying = true;
 
         public Game1()
         {
@@ -36,7 +39,7 @@ namespace BrickBreaker
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
         }
-    
+
 
         protected override void Initialize()
         {
@@ -47,6 +50,8 @@ namespace BrickBreaker
 
         protected override void LoadContent()
         {
+
+
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
             font = Content.Load<SpriteFont>("Font");
@@ -56,12 +61,14 @@ namespace BrickBreaker
 
             originalPos = new Vector2(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height - 70);
 
-            og = new Ball(originalPos, pixel, new Vector2(20, 20), Color.Black, new Vector2(5, 5), originalPos, true);
+            og = new Ball(originalPos, pixel, new Vector2(20, 20), Color.Red, new Vector2(5, 5), originalPos, true);
             balls.Add(og);
 
             paddle = new Paddle(new Vector2(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height - 15), pixel, new Vector2(200, 15), Color.Black, new Vector2(10, 5));
 
             bricks = new Brick[60];
+
+
 
             gap = 5;
             x = gap + 10;
@@ -74,13 +81,14 @@ namespace BrickBreaker
             for (int i = 0; i < bricks.Length; i++)
             {
                 bricks[i] = new Brick(new Vector2(x, y), pixel, new Vector2(width, height), Color.White, new Vector2(0, 0), rand);
+                bricks[i].IsVisible = true;
                 x = x + width + gap;
 
                 if (x + width >= GraphicsDevice.Viewport.Width)
                 {
                     y = y + height + gap;
                     level++;
-                    if(level % 2 == 0)
+                    if (level % 2 == 0)
                     {
                         x = gap + 10;
                     }
@@ -96,6 +104,7 @@ namespace BrickBreaker
 
         public void Reset()
         {
+            isPlaying = true;
             for (int i = 0; i < bricks.Length; i++)
             {
                 bricks[i].IsVisible = true;
@@ -122,6 +131,12 @@ namespace BrickBreaker
 
 
         }
+        public void GameOver()
+        {
+            isPlaying = false;
+            yesButton = new Button(new Vector2(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height / 2), pixel, new Vector2(10, 10), Color.White, Vector2.Zero);
+            noButton = new Button(new Vector2(GraphicsDevice.Viewport.Width / 2 - 40, GraphicsDevice.Viewport.Height / 2), pixel, new Vector2(10, 10), Color.White, Vector2.Zero);
+        }
         public void EndingGameOptions()
         {
             if (balls[0].Lives == 0)
@@ -142,15 +157,17 @@ namespace BrickBreaker
             }
 
         }
-      
+
 
         protected override void Update(GameTime gameTime)
         {
+            
+
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
             ks = Keyboard.GetState();
-           
+            MouseState ms = Mouse.GetState();
 
             float x = paddle.Position.X;
             float y = paddle.Position.Y;
@@ -174,7 +191,7 @@ namespace BrickBreaker
 
                 if (ball.isDead == true)
                 {
-                    if (ball.OriginalBall == false) 
+                    if (ball.OriginalBall == false)
                     {
                         balls.RemoveAt(ballIndex);
                         ballIndex--;
@@ -183,7 +200,7 @@ namespace BrickBreaker
 
                     if (ks.IsKeyDown(Keys.Space))
                     {
-                        ball.Speed = new Vector2(5, 5); 
+                        ball.Speed = new Vector2(5, 5);
                         ball.Position = ball.OriginalPos;
                         ball.isDead = false;
                     }
@@ -222,12 +239,48 @@ namespace BrickBreaker
                         bricks[i].Tint = Color.Red;
                     }
                 }
+
                 if (paddle.HitBox.Intersects(ball.HitBox))
                 {
                     //Then make sure ball gets readjusted to correct location
 
-                    ball.Speed = new Vector2(ball.Speed.X, ball.Speed.Y * -1);
 
+                    if (ball.Position.Y + ball.Height >= paddle.Position.Y && ball.Position.Y + ball.Height <= paddle.Position.Y + Math.Abs(ball.Speed.Y))
+                    {
+                        //we are colliding on the top
+
+                        ball.Speed = new Vector2(ball.Speed.X, ball.Speed.Y * -1);
+                    }
+                    else
+                    {
+                        //colliding on the side
+                        ball.Speed = new Vector2(ball.Speed.X * -1, ball.Speed.Y);
+
+                        if(ball.Position.X < paddle.Position.X + paddle.Width / 2)
+                        {
+                            ball.Position = new Vector2(paddle.Position.X - ball.Width, ball.Position.Y);
+                        }
+                        else
+                        {
+                            ball.Position = new Vector2(paddle.Position.X + paddle.Width, ball.Position.Y);
+                        }
+
+                    //    float newx = ball.Position.X;
+                    //
+                    //    newx = Math.Max(newx, paddle.Position.X - ball.Width);
+                    //    newx = Math.Min(newx, paddle.Position.X + paddle.Width);
+                    //
+                    //    ball.Position = new Vector2(newx, ball.Position.Y);
+                    }
+                }
+                else
+                {
+                    Window.Title = "";
+                }
+
+                if (ball.Lives == 0)
+                {
+                    GameOver();
                 }
 
                 ball.BounceBall(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, ks);
@@ -236,6 +289,7 @@ namespace BrickBreaker
                 {
 
                 }
+
             }
             base.Update(gameTime);
         }
@@ -254,13 +308,25 @@ namespace BrickBreaker
 
             paddle.Draw(spriteBatch);
 
-            for (int i = 0; i < bricks.Length; i++)
+            if (isPlaying == true)
             {
-                //If bricks[i] is not visible do not draw
-                if (bricks[i].IsVisible == true)
+                for (int i = 0; i < bricks.Length; i++)
                 {
-                    bricks[i].Draw(spriteBatch);
+                    //If bricks[i] is not visible do not draw
+                    if (bricks[i].IsVisible == true)
+                    {
+                        bricks[i].Draw(spriteBatch);
+                    }
                 }
+            }
+
+            if (noButton != null)
+            {
+                noButton.Draw(spriteBatch);
+            }
+            if (yesButton != null)
+            {
+                yesButton.Draw(spriteBatch);
             }
 
             spriteBatch.DrawString(font, $"Lives: {balls.Count + balls[0].Lives - 1}", new Vector2(0, 0), Color.Black);
