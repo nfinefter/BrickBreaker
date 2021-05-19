@@ -17,13 +17,20 @@ namespace BrickBreaker
 
         public bool IsClick(MouseState mouseState)
         {
+            //If i am not visible by click function should always return false
+
+            if (IsVisible == false)
+            {
+                return false;
+            }
             if (mouseState.LeftButton == ButtonState.Pressed && HitBox.Contains(mouseState.Position))
             {
                 return true;
             }
-               
+
+
             return false;
-            
+
         }
     }
 }

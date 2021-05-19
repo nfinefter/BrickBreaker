@@ -15,6 +15,8 @@ namespace BrickBreaker
 
         public Vector2 Scale { get; set; }
 
+        public bool IsVisible { get; set; } = true;
+
         public int Width
         {
             get
@@ -52,7 +54,11 @@ namespace BrickBreaker
         public virtual void Draw(SpriteBatch spriteBatch)
         {
             //IsDebug
-
+            //if not visible do not draw
+            if (IsVisible == false)
+            {
+                return;
+            }
             spriteBatch.Draw(Texture, HitBox, Tint);
         }
     }

@@ -71,7 +71,7 @@ namespace BrickBreaker
         {
             for (int i = 0; i < 3; i++)
             {
-                Ball ball = new Ball(OriginalPos, Texture, Scale, Color.Black, new Vector2(rand.Next(1, 11), rand.Next(1, 11)), OriginalPos, false);
+                Ball ball = new Ball(new Vector2(OriginalPos.X, OriginalPos.Y - 30), Texture, Scale, Color.Black, new Vector2(rand.Next(1, 11), -rand.Next(1, 11)), OriginalPos, false);
                 balls.Add(ball);
             }
 

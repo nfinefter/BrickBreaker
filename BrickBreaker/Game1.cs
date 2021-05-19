@@ -22,8 +22,6 @@ namespace BrickBreaker
         SpriteFont font;
         KeyboardState ks;
         Ball og;
-        bool isExitSelected = false;
-        bool isPlayAgainSelected = false;
         int gap;
         int x;
         int y;
@@ -32,6 +30,9 @@ namespace BrickBreaker
         int level;
         Texture2D pixel;
         bool isPlaying = true;
+        bool moveBall = true;
+        bool win = false;
+        bool lose = false;
 
         public Game1()
         {
@@ -68,7 +69,8 @@ namespace BrickBreaker
 
             bricks = new Brick[60];
 
-
+            yesButton = new Button(new Vector2(GraphicsDevice.Viewport.Width / 2 + 50, GraphicsDevice.Viewport.Height / 2), pixel, new Vector2(50, 50), Color.White, Vector2.Zero);
+            noButton = new Button(new Vector2(GraphicsDevice.Viewport.Width / 2 - 40, GraphicsDevice.Viewport.Height / 2), pixel, new Vector2(50, 50), Color.White, Vector2.Zero);
 
             gap = 5;
             x = gap + 10;
@@ -104,7 +106,22 @@ namespace BrickBreaker
 
         public void Reset()
         {
+
             isPlaying = true;
+
+            og.IsVisible = true;
+            og.Lives = 3;
+            x = gap + 10;
+            y = gap + 30;
+
+            yesButton.IsVisible = false;
+            noButton.IsVisible = false;
+
+            lose = false;
+            win = false;
+
+            moveBall = true;
+
             for (int i = 0; i < bricks.Length; i++)
             {
                 bricks[i].IsVisible = true;
@@ -127,37 +144,42 @@ namespace BrickBreaker
                         x = gap + 40;
                     }
                 }
+                
             }
-
+            //og = new Ball(originalPos, pixel, new Vector2(20, 20), Color.Red, new Vector2(5, 5), originalPos, true);
+            //balls.Add(og);
 
         }
         public void GameOver()
         {
             isPlaying = false;
-            yesButton = new Button(new Vector2(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height / 2), pixel, new Vector2(10, 10), Color.White, Vector2.Zero);
-            noButton = new Button(new Vector2(GraphicsDevice.Viewport.Width / 2 - 40, GraphicsDevice.Viewport.Height / 2), pixel, new Vector2(10, 10), Color.White, Vector2.Zero);
+            yesButton.IsVisible = true;
+            noButton.IsVisible = true;
+
+            og.Speed = Vector2.Zero;
+            og.IsVisible = false;
+            moveBall = false;
+            for (int i = 1; i < balls.Count; i++)
+            {
+                balls.RemoveAt(i);
+            }
         }
-        public void EndingGameOptions()
+
+        public bool DidWin()
         {
-            if (balls[0].Lives == 0)
-            {
-                //You Lose
-            }
-            if (bricks.Length == 0)
-            {
-                //You Win
-            }
-            if (isPlayAgainSelected == true)
-            {
-                Reset();
-            }
-            if (isExitSelected == true)
-            {
-                Exit();
-            }
+            //Loop through the array, and check if there is a SINGLE brick that is VISIBLE
+            //return false
 
+            for (int i = 0; i < bricks.Length; i++)
+            {
+                if (bricks[i].IsVisible == true)
+                {
+                    return false;
+                }
+            }
+            return true;
+            //return true
         }
-
 
         protected override void Update(GameTime gameTime)
         {
@@ -197,14 +219,17 @@ namespace BrickBreaker
                         ballIndex--;
                         continue;
                     }
-
-                    if (ks.IsKeyDown(Keys.Space))
+                    if (moveBall == true)
                     {
-                        ball.Speed = new Vector2(5, 5);
-                        ball.Position = ball.OriginalPos;
-                        ball.isDead = false;
+                        if (ks.IsKeyDown(Keys.Space))
+                        {
+                            ball.Speed = new Vector2(5, 5);
+                            ball.Position = new Vector2(paddle.Position.X, paddle.Position.Y - 40);
+                            ball.isDead = false;
+                        }
                     }
                 }
+               
                 //At the very end set paddle.Position = new Vector2(x, y)
 
                 // TODO: Add your update logic here
@@ -280,9 +305,23 @@ namespace BrickBreaker
 
                 if (ball.Lives == 0)
                 {
+                    lose = true;
                     GameOver();
                 }
-
+                if (DidWin() == true)
+                {
+                    win = true;
+                    GameOver();
+                }
+                
+                if (yesButton != null && yesButton.IsClick(ms) )
+                {
+                    Reset();
+                }
+                if (noButton != null && noButton.IsClick(ms))
+                {
+                    Exit();
+                }
                 ball.BounceBall(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, ks);
 
                 if (ball.GameEnd == true && ball.OriginalBall)
@@ -291,8 +330,11 @@ namespace BrickBreaker
                 }
 
             }
+
             base.Update(gameTime);
         }
+
+       
 
         protected override void Draw(GameTime gameTime)
         {
@@ -308,6 +350,7 @@ namespace BrickBreaker
 
             paddle.Draw(spriteBatch);
 
+           
             if (isPlaying == true)
             {
                 for (int i = 0; i < bricks.Length; i++)
@@ -319,17 +362,32 @@ namespace BrickBreaker
                     }
                 }
             }
-
-            if (noButton != null)
+            else
             {
-                noButton.Draw(spriteBatch);
-            }
-            if (yesButton != null)
-            {
-                yesButton.Draw(spriteBatch);
-            }
+                if (noButton != null)
+                {
+                    noButton.Draw(spriteBatch);
+                }
+                if (yesButton != null)
+                {
+                    yesButton.Draw(spriteBatch);
+                }
+                spriteBatch.DrawString(font, "Do you want to play again?", new Vector2(GraphicsDevice.Viewport.Width / 2 - 60, GraphicsDevice.Viewport.Height / 2 - 40), Color.Black);
+                spriteBatch.DrawString(font, "Yes", new Vector2(yesButton.Position.X, yesButton.Position.Y), Color.Black);
+                spriteBatch.DrawString(font, "No", new Vector2(noButton.Position.X, noButton.Position.Y), Color.Black);
 
-            spriteBatch.DrawString(font, $"Lives: {balls.Count + balls[0].Lives - 1}", new Vector2(0, 0), Color.Black);
+            }
+            if (lose == true)
+            {
+                spriteBatch.DrawString(font, "You Lose!", new Vector2(GraphicsDevice.Viewport.Width / 2 - 60, GraphicsDevice.Viewport.Height / 2 - 70), Color.Black);
+            }
+            if (win == true)
+            {
+                spriteBatch.DrawString(font, "You Win!", new Vector2(GraphicsDevice.Viewport.Width / 2 - 60, GraphicsDevice.Viewport.Height / 2 - 70), Color.Black);
+            }
+            
+
+            spriteBatch.DrawString(font, $"Lives: {balls[0].Lives}", new Vector2(0, 0), Color.Black);
 
             spriteBatch.End();
 
